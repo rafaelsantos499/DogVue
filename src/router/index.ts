@@ -1,3 +1,5 @@
+import { api } from "@/service";
+import store from "@/store";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -24,7 +26,26 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/conta",
+      name: "Conta",
+      component: () => import("@/views/usuario/Conta.vue"),
+    },
   ],
+});
+
+router.beforeEach(async () => {
+  if (window.localStorage.token) {
+    try {
+      const dateUsuarios = await api.validate();
+      await store.dispatch("getUsuario");
+      await store.commit("UPDATE_USUARIO", dateUsuarios.data);
+      await store.commit("UPDATE_LOGIN", true);
+    } catch (err) {
+      window.localStorage.removeItem("token");
+      store.commit("UPDATE_LOGIN", false);
+    }
+  }
 });
 
 export default router;

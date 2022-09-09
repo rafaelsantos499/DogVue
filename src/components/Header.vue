@@ -22,6 +22,7 @@
           <circle cx="7" cy="3" r="3" fill="#333" />
         </svg>
       </router-link>
+      {{ user }}
       <router-link :to="{ name: 'login' }" class="login text-secondary"
         >login / Criar</router-link
       >
@@ -29,7 +30,26 @@
   </header>
 </template>
 <script lang="ts">
-export default {};
+import { ref, watch } from "vue";
+import { useStore } from "vuex";
+
+export default {
+  setup() {
+    const store = useStore();
+    const user = ref(null);
+
+    watch(
+      () => store.state.usuario,
+      () => {
+        user.value = store.state.usuario.email;
+      }
+    );
+
+    return {
+      user,
+    };
+  },
+};
 </script>
 <style scoped>
 .login::after {
