@@ -24,6 +24,11 @@ const router = createRouter({
           name: "LoginCreater",
           component: () => import("@/views/Login/LoginCreater.vue"),
         },
+        {
+          path: "perdeu",
+          name: "LoginPasswordLost",
+          component: () => import("@/views/Login/LoginPasswordLost.vue"),
+        },
       ],
     },
     {
@@ -37,10 +42,9 @@ const router = createRouter({
 router.beforeEach(async () => {
   if (window.localStorage.token) {
     try {
-      const dateUsuarios = await api.validate();
+      await api.validate();
       await store.dispatch("getUsuario");
-      await store.commit("UPDATE_USUARIO", dateUsuarios.data);
-      await store.commit("UPDATE_LOGIN", true);
+      store.commit("UPDATE_LOGIN", true);
     } catch (err) {
       window.localStorage.removeItem("token");
       store.commit("UPDATE_LOGIN", false);

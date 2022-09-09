@@ -1,42 +1,46 @@
 import { createStore } from "vuex";
-import type { usuario } from "./models/usuario";
+import type { Usuario } from "./models/usuario";
 import router from "./router";
 import { api } from "./service";
+import type { Login } from "./models/Login";
 
 export interface state {
   login: boolean;
-  usuario: usuario;
+  usuario: Usuario;
 }
 
 const store = createStore<state>({
   strict: true,
   state: {
     login: false,
-    usuario: <usuario>{},
+    usuario: <Usuario>{},
   },
   getters: {},
   mutations: {
     UPDATE_USUARIO(state, payload) {
       state.usuario = Object.assign({}, state.usuario, payload);
     },
-    UPDATE_LOGIN(state, payload) {
-      state.login = payload;
+    UPDATE_LOGIN(state: state, payload: boolean): boolean {
+      return (state.login = payload);
     },
   },
   actions: {
-    async logarUsuario(contex, payload) {
-      const response = await api.login(payload);
-      const token = (await "Bearer ") + response.data.token;
+    async logarUsuario(state, payload: Login) {
+      const { data } = await api.login(payload);
+      const token = (await "Bearer ") + data.token;
       await window.localStorage.setItem("token", token);
-      router.push("/conta");
-      return response;
-    },
-    async getUsuario(state) {
-      const response = await api.get("/api/user");
-      await state.commit("UPDATE_USUARIO", response.data);
-      console.log(response);
+      const useData = await state.dispatch("getUsuario");
+      await state.commit("UPDATE_USUARIO", useData);
+      await state.dispatch("UPDATE_LOGIN", true);
+      await router.push("/conta");
 
-      return response;
+      return data;
+    },
+    async getUsuario(state): Promise<Usuario> {
+      const { data } = await api.get("/api/user");
+      await state.commit("UPDATE_USUARIO", data);
+
+      return data;
     },
   },
 });

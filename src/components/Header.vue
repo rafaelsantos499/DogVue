@@ -22,31 +22,47 @@
           <circle cx="7" cy="3" r="3" fill="#333" />
         </svg>
       </router-link>
-      {{ user }}
-      <router-link :to="{ name: 'login' }" class="login text-secondary"
+
+      <router-link
+        v-if="!login"
+        :to="{ name: 'login' }"
+        class="login text-secondary"
         >login / Criar</router-link
+      >
+      <router-link v-else to="/conta">
+        <button
+          type="submit"
+          class="h6 border-0 rounded-1 bg-warning text-primary py-2 px-4"
+          style="min-width: 8rem"
+        >
+          {{ user }}
+        </button></router-link
       >
     </nav>
   </header>
 </template>
 <script lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch, type Ref } from "vue";
 import { useStore } from "vuex";
 
 export default {
   setup() {
     const store = useStore();
-    const user = ref(null);
+    const user: Ref<string> = ref("");
+    const login: Ref<boolean> = ref(false);
 
     watch(
-      () => store.state.usuario,
+      () => store.state.login,
       () => {
-        user.value = store.state.usuario.email;
+        user.value = store.state.usuario.username;
+        user.value = user.value[0].toUpperCase() + user.value.substring(1);
+        login.value = store.state.login;
       }
     );
 
     return {
       user,
+      login,
     };
   },
 };
