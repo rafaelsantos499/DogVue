@@ -15,7 +15,7 @@ const router = createRouter({
       component: () => import("@/views/Login/Login.vue"),
       children: [
         {
-          path: "loginForm",
+          path: "entrar",
           name: "login",
           component: () => import("@/views/Login/LoginForm.vue"),
         },
@@ -35,19 +35,50 @@ const router = createRouter({
       path: "/conta",
       name: "Conta",
       component: () => import("@/views/usuario/Conta.vue"),
+      meta: {
+        login: true,
+      },
+      children: [
+        {
+          path: "criarpost",
+          name: "UserPhotoPost",
+          component: () => import("@/views/usuario/UserPhotoPost.vue"),
+          meta: {
+            login: true,
+          },
+        },
+        {
+          path: "estatisticas",
+          name: "UserStats",
+          component: () => import("@/views/usuario/UserStats.vue"),
+          meta: {
+            login: true,
+          },
+        },
+      ],
+    },
+    {
+      path: "/:pathMatch(.*)",
+      name: "NotFound",
+      component: () => import("@/components/error/NotFound.vue"),
     },
   ],
 });
 
-router.beforeEach(async () => {
-  if (window.localStorage.token) {
-    try {
-      await api.validate();
-      await store.dispatch("getUsuario");
-      store.commit("UPDATE_LOGIN", true);
-    } catch (err) {
-      window.localStorage.removeItem("token");
-      store.commit("UPDATE_LOGIN", false);
+router.beforeEach(async (to, from) => {
+  if (to.matched.some((record) => record.meta.login)) {
+    if (!window.localStorage.token) {
+      router.push({ name: "login" });
+    } else {
+      try {
+        await api.validate();
+        await store.dispatch("getUsuario");
+        store.commit("UPDATE_LOGIN", true);
+      } catch (err) {
+        window.localStorage.removeItem("token");
+        store.commit("UPDATE_LOGIN", false);
+        router.push({ name: "login" });
+      }
     }
   }
 });

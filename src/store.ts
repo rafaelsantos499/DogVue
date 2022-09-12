@@ -2,7 +2,7 @@ import { createStore } from "vuex";
 import type { Usuario } from "./models/usuario";
 import router from "./router";
 import { api } from "./service";
-import type { Login } from "./models/Login";
+import type { Login, CreaterUser } from "./models/Login";
 
 export interface state {
   login: boolean;
@@ -25,13 +25,16 @@ const store = createStore<state>({
     },
   },
   actions: {
+    async criarUsuario(state, payload: CreaterUser) {
+      await api.post("api/user", payload);
+    },
     async logarUsuario(state, payload: Login) {
       const { data } = await api.login(payload);
       const token = (await "Bearer ") + data.token;
       await window.localStorage.setItem("token", token);
       const useData = await state.dispatch("getUsuario");
       await state.commit("UPDATE_USUARIO", useData);
-      await state.dispatch("UPDATE_LOGIN", true);
+      // await state.dispatch("UPDATE_LOGIN", true);
       await router.push("/conta");
 
       return data;
@@ -41,6 +44,18 @@ const store = createStore<state>({
       await state.commit("UPDATE_USUARIO", data);
 
       return data;
+    },
+    deslogarUsuario(state) {
+      const initialUser = {
+        id: 0,
+        email: "",
+        nome: "",
+        username: "",
+      };
+      state.commit("UPDATE_LOGIN", false);
+      state.commit("UPDATE_USUARIO", initialUser);
+      window.localStorage.removeItem("token");
+      router.push({ name: "login" });
     },
   },
 });

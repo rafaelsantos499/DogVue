@@ -42,6 +42,7 @@
   </header>
 </template>
 <script lang="ts">
+import type store from "@/store";
 import { onMounted, onUnmounted, ref, watch, type Ref } from "vue";
 import { useStore } from "vuex";
 
@@ -55,7 +56,7 @@ export default {
       () => store.state.login,
       () => {
         user.value = store.state.usuario.username;
-        user.value = user.value[0].toUpperCase() + user.value.substring(1);
+        // user.value = user.value[0].toUpperCase() + user.value.substring(1);
         login.value = store.state.login;
       }
     );
