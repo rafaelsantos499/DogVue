@@ -65,20 +65,20 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach(async (to, from) => {
+router.beforeEach((to, from) => {
   if (to.matched.some((record) => record.meta.login)) {
     if (!window.localStorage.token) {
       router.push({ name: "login" });
     } else {
-      try {
-        await api.validate();
-        await store.dispatch("getUsuario");
-        store.commit("UPDATE_LOGIN", true);
-      } catch (err) {
-        window.localStorage.removeItem("token");
-        store.commit("UPDATE_LOGIN", false);
-        router.push({ name: "login" });
-      }
+      api
+        .validate()
+        .then(() => store.dispatch("getUsuario"))
+        .then(() => store.commit("UPDATE_LOGIN", true))
+        .catch((err) => {
+          window.localStorage.removeItem("token");
+          store.commit("UPDATE_LOGIN", false);
+          router.push({ name: "login" });
+        });
     }
   }
 });
