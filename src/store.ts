@@ -32,12 +32,9 @@ const store = createStore<state>({
       const { data } = await api.login(payload);
       const token = (await "Bearer ") + data.token;
       await window.localStorage.setItem("token", token);
-      const useData = await state.dispatch("getUsuario");
-      await state.commit("UPDATE_USUARIO", useData);
-      // await state.dispatch("UPDATE_LOGIN", true);
+      await state.dispatch("getUsuario");
+      await state.commit("UPDATE_LOGIN", true);
       await router.push("/conta");
-
-      return data;
     },
     async getUsuario(state): Promise<Usuario> {
       const { data } = await api.get("/api/user");

@@ -76,7 +76,6 @@ export default {
         // const dataUser = await store.dispatch("getUsuario");
         // await store.dispatch("UPDATE_USUARIO", dataUser);
         // await store.commit("UPDATE_LOGIN", true);
-
         buttonLoading.value = false;
       } catch (err: any) {
         erros.value.push(err.response.data.message);
