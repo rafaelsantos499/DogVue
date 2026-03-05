@@ -1,5 +1,5 @@
 import { api } from "@/service";
-import store from "@/store";
+import { useUserStore } from "@/store";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -70,13 +70,14 @@ router.beforeEach((to, from) => {
     if (!window.localStorage.token) {
       router.push({ name: "login" });
     } else {
+      const store = useUserStore();
       api
         .validate()
-        .then(() => store.dispatch("getUsuario"))
-        .then(() => store.commit("UPDATE_LOGIN", true))
+        .then(() => store.getUsuario())
+        .then(() => store.updateLogin(true))
         .catch((err) => {
           window.localStorage.removeItem("token");
-          store.commit("UPDATE_LOGIN", false);
+          store.updateLogin(false);
           router.push({ name: "login" });
         });
     }

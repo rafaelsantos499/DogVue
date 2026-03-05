@@ -23,7 +23,7 @@
   </header>
 </template>
 <script lang="ts">
-import { useStore } from "vuex";
+import { useUserStore } from "@/store";
 import SvgStats from "@/assets/estatisticas.svg";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
 import { onBeforeMount, onMounted, onUnmounted, ref } from "vue";
@@ -32,12 +32,12 @@ export default {
   name: "UserHeader",
 
   setup() {
-    const store = useStore();
+    const store = useUserStore();
     const router = useRouter();
     const mobile = false;
     const titlePage = ref("");
 
-    const deslogarUsuario = () => store.dispatch("deslogarUsuario");
+    const deslogarUsuario = () => store.deslogarUsuario();
 
     const MudarTituloPelaRota = (teste: any) => {
       const routeAtual = teste;

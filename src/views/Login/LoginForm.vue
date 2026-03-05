@@ -52,30 +52,27 @@ import { reactive, ref, type Ref } from "vue";
 import { api } from "../../service";
 import ErrorNotificacao from "../../components/error/ErrorNotificacao.vue";
 import type { Login } from "../../models/Login";
-import { useStore } from "vuex";
+import { useUserStore } from "@/store";
 
 export default {
   name: "LoginForm",
   components: { ErrorNotificacao },
   setup() {
-    const store = useStore();
+    const store = useUserStore();
     const username: Ref<string> = ref("");
     const password: Ref<string> = ref("");
     const erros: Ref<any> = ref([]);
     const buttonLoading = ref(false);
 
     async function handleSubmit() {
-      const dateLogin: Login = await reactive({
+      const dateLogin: Login = reactive({
         username: username.value,
         password: password.value,
       });
 
       try {
         buttonLoading.value = true;
-        await store.dispatch("logarUsuario", dateLogin);
-        // const dataUser = await store.dispatch("getUsuario");
-        // await store.dispatch("UPDATE_USUARIO", dataUser);
-        // await store.commit("UPDATE_LOGIN", true);
+        await store.logarUsuario(dateLogin);
         buttonLoading.value = false;
       } catch (err: any) {
         erros.value.push(err.response.data.message);

@@ -35,15 +35,14 @@
 <script lang="ts">
 import { reactive, ref } from "vue";
 import type { CreaterUser } from "@/models/Login";
-import { useStore } from "vuex";
-import router from "@/router";
+import { useUserStore } from "@/store";
 import { useRouter } from "vue-router";
 
 export default {
   name: "LoginCreater",
   setup() {
     const route = useRouter();
-    const store = useStore();
+    const store = useUserStore();
     const username = ref("");
     const email = ref("");
     const password = ref("");
@@ -66,10 +65,10 @@ export default {
       erros.value = "";
 
       try {
-        loadingCreaterUser.value = await false;
-        await store.dispatch("criarUsuario", dateUser);
-        await store.dispatch("logarUsuario", dateLogin);
-        createrUserSuccess.value = await true;
+        loadingCreaterUser.value = false;
+        await store.criarUsuario(dateUser);
+        await store.logarUsuario(dateLogin);
+        createrUserSuccess.value = true;
       } catch (err: any) {
         console.log(err.response.data.message);
         loadingCreaterUser.value = true;

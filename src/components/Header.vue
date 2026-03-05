@@ -42,22 +42,20 @@
   </header>
 </template>
 <script lang="ts">
-import type store from "@/store";
+import { useUserStore } from "@/store";
 import { onMounted, onUnmounted, ref, watch, type Ref } from "vue";
-import { useStore } from "vuex";
+import { storeToRefs } from "pinia";
 
 export default {
   setup() {
-    const store = useStore();
+    const store = useUserStore();
+    const { login, usuario } = storeToRefs(store);
     const user: Ref<string> = ref("");
-    const login: Ref<boolean> = ref(false);
 
     watch(
-      () => store.state.login,
+      () => store.login,
       () => {
-        user.value = store.state.usuario.username;
-        // user.value = user.value[0].toUpperCase() + user.value.substring(1);
-        login.value = store.state.login;
+        user.value = store.usuario.username;
       }
     );
 
