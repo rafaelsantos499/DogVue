@@ -1,24 +1,45 @@
 <template>
   <main class="container">
-    <Feed :photos="photos" />
+    <Feed :photos="photos" @selectPhoto="openModal" />
     <div v-if="loading" class="loadingWrapper">
       <p>Carregando...</p>
     </div>
     <div v-if="!hasMore && photos.length" class="loadingWrapper">
       <p>Não existem mais fotos.</p>
     </div>
+    <FeedModal v-model="selectedPhotoId" @close="closeModal" />
   </main>
 </template>
 <script setup lang="ts">
 import { apiService } from '@/service/apiService';
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import type { Photo } from '@/models/Photo';
 import Feed from '@/components/feed/Feed.vue';
+import FeedModal from '@/components/feed/FeedModal.vue';
+
+const route = useRoute();
+const router = useRouter();
 
 const photos = ref<Photo[]>([]);
 const page = ref(1);
 const loading = ref(false);
 const hasMore = ref(true);
+const selectedPhotoId = ref<number | null>(null);
+
+if (route.params.id) {
+  selectedPhotoId.value = Number(route.params.id);
+}
+
+function openModal(id: number) {
+  selectedPhotoId.value = id;
+  router.push(`/feed/photo/${id}`);
+}
+
+function closeModal() {
+  selectedPhotoId.value = null;
+  router.push('/');
+}
 
 onMounted(() => {
   feed();

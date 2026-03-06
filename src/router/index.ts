@@ -58,6 +58,11 @@ const router = createRouter({
       ],
     },
     {
+      path: "/feed/photo/:id",
+      name: "photo",
+      component: () => import("@/views/HomeView.vue"),
+    },
+    {
       path: "/:pathMatch(.*)",
       name: "NotFound",
       component: () => import("@/components/error/NotFound.vue"),
