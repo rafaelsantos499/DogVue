@@ -1,4 +1,4 @@
-import { api } from "@/service";
+import { apiService } from "@/service/apiService";
 import { useUserStore } from "@/store";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -71,7 +71,7 @@ router.beforeEach((to, from) => {
       router.push({ name: "login" });
     } else {
       const store = useUserStore();
-      api
+      apiService
         .validate()
         .then(() => store.getUsuario())
         .then(() => store.updateLogin(true))

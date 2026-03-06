@@ -2,8 +2,9 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { Usuario } from "./models/usuario";
 import router from "./router";
-import { api } from "./service";
+
 import type { Login, CreaterUser } from "./models/Login";
+import { apiService } from "./service/apiService";
 
 export const useUserStore = defineStore("user", () => {
   const login = ref(false);
@@ -23,11 +24,11 @@ export const useUserStore = defineStore("user", () => {
   }
 
   async function criarUsuario(payload: CreaterUser) {
-    await api.post("api/user", payload);
+    await apiService.post("api/user", payload);
   }
 
   async function logarUsuario(payload: Login) {
-    const { data } = await api.login(payload);
+    const { data } = await apiService.login(payload);
     const token = "Bearer " + data.token;
     window.localStorage.setItem("token", token);
     await getUsuario();
@@ -36,7 +37,7 @@ export const useUserStore = defineStore("user", () => {
   }
 
   async function getUsuario(): Promise<Usuario> {
-    const { data } = await api.get("/api/user");
+    const { data } = await apiService.get("/api/user");
     updateUsuario(data);
     return data;
   }

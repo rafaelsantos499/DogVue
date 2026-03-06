@@ -49,7 +49,7 @@
 </template>
 <script lang="ts">
 import { reactive, ref, type Ref } from "vue";
-import { api } from "../../service";
+import { apiService } from "../../service/apiService";
 import ErrorNotificacao from "../../components/error/ErrorNotificacao.vue";
 import type { Login } from "../../models/Login";
 import { useUserStore } from "@/store";

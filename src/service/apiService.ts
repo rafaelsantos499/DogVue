@@ -18,7 +18,7 @@ axiosPadrao.interceptors.request.use(
   }
 );
 
-export const api = {
+export const apiService = {
   post(endpoint: string, body: any) {
     return axiosPadrao.post(endpoint, body);
   },
