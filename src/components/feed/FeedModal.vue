@@ -1,9 +1,9 @@
 <template>
   <div v-if="photoId" class="modal-overlay" @click="handleOutsideClick">
-    <div class="modal-content animeLeft">
-      <PhotoContent v-if="photoData" :data="photoData" :single="false" />
-      <p v-else class="text-center text-muted p-4">Carregando...</p>
+    <div v-if="photoData" class="modal-content animeLeft">
+      <PhotoContent :data="photoData" :single="false" />
     </div>
+    <Loading v-else :modal="true" />
   </div>
 </template>
 
@@ -12,6 +12,7 @@ import { ref, watch } from 'vue';
 import { apiService } from '@/service/apiService';
 import type { PhotoData } from '@/models/Photo';
 import PhotoContent from '@/components/photo/PhotoContent.vue';
+import Loading from '@/components/helper/Loading.vue';
 
 const photoId = defineModel<number | null>({ default: null });
 const photoData = ref<PhotoData | null>(null);

@@ -1,9 +1,7 @@
 <template>
   <main class="container">
     <Feed :photos="photos" @selectPhoto="openModal" />
-    <div v-if="loading" class="loadingWrapper">
-      <p>Carregando...</p>
-    </div>
+    <Loading v-if="loading" />
     <div v-if="!hasMore && photos.length" class="loadingWrapper">
       <p>Não existem mais fotos.</p>
     </div>
@@ -17,6 +15,7 @@ import { useRoute, useRouter } from 'vue-router';
 import type { Photo } from '@/models/Photo';
 import Feed from '@/components/feed/Feed.vue';
 import FeedModal from '@/components/feed/FeedModal.vue';
+import Loading from '@/components/helper/Loading.vue';
 
 const route = useRoute();
 const router = useRouter();

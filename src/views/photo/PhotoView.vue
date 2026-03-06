@@ -1,9 +1,7 @@
 <template>
   <main class="container" style="margin-top: 2rem;">
     <PhotoContent v-if="photoData" :data="photoData" :single="true" />
-    <div v-else class="loadingWrapper">
-      <p>Carregando...</p>
-    </div>
+    <Loading v-else />
   </main>
 </template>
 
@@ -13,6 +11,7 @@ import { useRoute } from 'vue-router';
 import { apiService } from '@/service/apiService';
 import type { PhotoData } from '@/models/Photo';
 import PhotoContent from '@/components/photo/PhotoContent.vue';
+import Loading from '@/components/helper/Loading.vue';
 
 const route = useRoute();
 const photoData = ref<PhotoData | null>(null);
