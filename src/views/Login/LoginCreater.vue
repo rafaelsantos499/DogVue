@@ -52,13 +52,13 @@ export default {
 
     async function handleSubmit() {
       const dateUser: CreaterUser = {
-        username: username.value,
+        nome: username.value,
         email: email.value,
         password: password.value,
       };
 
       const dateLogin = {
-        username: username.value,
+        email: email.value,
         password: password.value,
       };
 

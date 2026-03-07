@@ -4,15 +4,20 @@ import type { Usuario } from "./models/usuario";
 import router from "./router";
 
 import type { Login, CreaterUser } from "./models/Login";
-import { apiService } from "./service/apiService";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "./firebase";
+import { authService } from "./service/authService";
 
 export const useUserStore = defineStore("user", () => {
   const login = ref(false);
   const usuario = ref<Usuario>({
     id: 0,
     email: "",
-    nome: "",
-    username: "",
+    name: "",
+    created_at: "",
+    email_verified_at: "",
+    google_id: null,
+    updated_at: "",
   });
 
   function updateUsuario(payload: Partial<Usuario>) {
@@ -24,22 +29,31 @@ export const useUserStore = defineStore("user", () => {
   }
 
   async function criarUsuario(payload: CreaterUser) {
-    await apiService.post("api/user", payload);
+    await authService.register(payload);
   }
 
   async function logarUsuario(payload: Login) {
-    const { data } = await apiService.login(payload);
-    const token = "Bearer " + data.token;
-    window.localStorage.setItem("token", token);
-    await getUsuario();
+    const { token, user } = await authService.login(payload);
+    authService.saveToken(token);
+    updateUsuario(user);
     updateLogin(true);
     await router.push("/conta");
   }
 
   async function getUsuario(): Promise<Usuario> {
-    const { data } = await apiService.get("/api/user");
-    updateUsuario(data);
-    return data;
+    const { token, user } = await authService.validate();
+    updateUsuario(user);
+    return user;
+  }
+
+  async function loginComGoogle() {
+    const result = await signInWithPopup(auth, googleProvider);
+    const firebaseToken = await result.user.getIdToken();
+    const { token, user } = await authService.loginGoogle(firebaseToken);
+    authService.saveToken(token);
+    updateUsuario(user);
+    updateLogin(true);
+    await router.push("/conta");
   }
 
   function deslogarUsuario() {
@@ -47,10 +61,13 @@ export const useUserStore = defineStore("user", () => {
     updateUsuario({
       id: 0,
       email: "",
-      nome: "",
-      username: "",
+      name: "",
+      created_at: "",
+      email_verified_at: "",
+      google_id: null,
+      updated_at: "",
     });
-    window.localStorage.removeItem("token");
+    authService.removeToken();
     router.push({ name: "login" });
   }
 
@@ -61,6 +78,7 @@ export const useUserStore = defineStore("user", () => {
     updateLogin,
     criarUsuario,
     logarUsuario,
+    loginComGoogle,
     getUsuario,
     deslogarUsuario,
   };

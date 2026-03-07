@@ -55,7 +55,9 @@ export default {
     watch(
       () => store.login,
       () => {
-        user.value = store.usuario.username;
+        console.log("Login changed:", store.login);
+        console.log("usuario:", usuario.value);
+        user.value = usuario.value.name || "";
       }
     );
 

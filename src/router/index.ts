@@ -1,4 +1,3 @@
-import { apiService } from "@/service/apiService";
 import { useUserStore } from "@/store";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -70,21 +69,18 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, from) => {
+router.beforeEach(async (to) => {
   if (to.matched.some((record) => record.meta.login)) {
     if (!window.localStorage.token) {
-      router.push({ name: "login" });
-    } else {
+      return { name: "login" };
+    }
+    try {
       const store = useUserStore();
-      apiService
-        .validate()
-        .then(() => store.getUsuario())
-        .then(() => store.updateLogin(true))
-        .catch((err) => {
-          window.localStorage.removeItem("token");
-          store.updateLogin(false);
-          router.push({ name: "login" });
-        });
+      await store.getUsuario();
+      store.updateLogin(true);
+    } catch {
+      window.localStorage.removeItem("token");
+      return { name: "login" };
     }
   }
 });

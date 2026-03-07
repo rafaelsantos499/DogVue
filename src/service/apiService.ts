@@ -2,7 +2,7 @@ import axios from "axios";
 import type { Login } from "@/models/Login";
 
 const axiosPadrao = axios.create({
-  baseURL: "https://dogsapi.origamid.dev/json/",
+  baseURL: "http://localhost:8000/api/",
 });
 
 axiosPadrao.interceptors.request.use(
@@ -24,16 +24,5 @@ export const apiService = {
   },
   get(endpoint: string) {
     return axiosPadrao.get(endpoint);
-  },
-  login(body: Login) {
-    return axios.post(
-      "https://dogsapi.origamid.dev/json/jwt-auth/v1/token",
-      body
-    );
-  },
-  validate() {
-    return axiosPadrao.post(
-      "https://dogsapi.origamid.dev/json/jwt-auth/v1/token/validate"
-    );
-  },
+  }, 
 };

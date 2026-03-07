@@ -1,10 +1,10 @@
 export interface Login {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface CreaterUser {
-  username: string;
-  password: string;
   email: string;
+  password: string;
+  nome: string;
 }
