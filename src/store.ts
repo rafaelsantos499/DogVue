@@ -33,15 +33,15 @@ export const useUserStore = defineStore("user", () => {
   }
 
   async function logarUsuario(payload: Login) {
-    const { token, user } = await authService.login(payload);
-    authService.saveToken(token);
+    const { access_token, refresh_token, user } = await authService.login(payload);
+    authService.saveToken(access_token, refresh_token);
     updateUsuario(user);
     updateLogin(true);
     await router.push("/conta");
   }
 
   async function getUsuario(): Promise<Usuario> {
-    const { token, user } = await authService.validate();
+    const { access_token, user } = await authService.validate();
     updateUsuario(user);
     return user;
   }
@@ -49,8 +49,9 @@ export const useUserStore = defineStore("user", () => {
   async function loginComGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
     const firebaseToken = await result.user.getIdToken();
-    const { token, user } = await authService.loginGoogle(firebaseToken);
-    authService.saveToken(token);
+    const { access_token, refresh_token, user } =
+      await authService.loginGoogle(firebaseToken);
+    authService.saveToken(access_token, refresh_token);
     updateUsuario(user);
     updateLogin(true);
     await router.push("/conta");

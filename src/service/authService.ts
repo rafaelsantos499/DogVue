@@ -3,7 +3,10 @@ import { apiService } from "./apiService";
 import type { Usuario } from "@/models/usuario";
 
 interface AuthloginResponse {
-    token: string;
+    access_token: string;
+    expires_in: number;
+    refresh_token: string;
+    token_type: string;
     user: Usuario
 }
 
@@ -21,11 +24,21 @@ export const authService = {
         );
         return data;
     },
-    saveToken(token: string) {
+    async refreshToken(refreshToken: string): Promise<AuthloginResponse> {
+        const { data } = await apiService.post("/auth/refresh", {}, {
+            headers: { Authorization: "Bearer " + refreshToken },
+        });
+        return data;
+    },
+    saveToken(token: string,refreshToken?: string) {
         window.localStorage.setItem("token", "Bearer " + token);
+        if (refreshToken) {
+            window.localStorage.setItem("refreshToken", refreshToken);
+        }
     },
     removeToken() {
         window.localStorage.removeItem("token");
+        window.localStorage.removeItem("refreshToken");
     },
     async loginGoogle(idToken: string): Promise<AuthloginResponse> {
         const { data } = await apiService.post("auth/firebase", { id_token: idToken });
