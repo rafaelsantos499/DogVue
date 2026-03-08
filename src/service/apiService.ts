@@ -4,7 +4,7 @@ import { authService } from "./authService";
 let refreshRequest: Promise<string | null> | null = null;
 
 const axiosPadrao = axios.create({
-  baseURL: "http://localhost:8000/api/",
+  baseURL: "http://localhost:8080/api/",
 });
 
 async function refreshAccessToken(): Promise<string | null> {

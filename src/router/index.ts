@@ -71,16 +71,18 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.matched.some((record) => record.meta.login)) {
-    if (!window.localStorage.token) {
-      return { name: "login" };
-    }
-    try {
-      const store = useUserStore();
-      await store.getUsuario();
-      store.updateLogin(true);
-    } catch {
-      window.localStorage.removeItem("token");
-      return { name: "login" };
+    const store = useUserStore();
+    if (!store.login) {
+      if (!window.localStorage.token) {
+        return { name: "login" };
+      }
+      try {
+        await store.getUsuario();
+        store.updateLogin(true);
+      } catch {
+        window.localStorage.removeItem("token");
+        return { name: "login" };
+      }
     }
   }
 });
