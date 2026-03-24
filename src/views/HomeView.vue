@@ -12,7 +12,7 @@
 import { apiService } from '@/service/apiService';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { Photo } from '@/models/Photo';
+import type { FeedResponse, Photo } from '@/models/Photo';
 import Feed from '@/components/feed/Feed.vue';
 import FeedModal from '@/components/feed/FeedModal.vue';
 import Loading from '@/components/helper/Loading.vue';
@@ -25,6 +25,7 @@ const page = ref(1);
 const loading = ref(false);
 const hasMore = ref(true);
 const selectedPhotoId = ref<number | null>(null);
+const cursor = ref<string | null>(null);
 
 if (route.params.id) {
   selectedPhotoId.value = Number(route.params.id);
@@ -59,13 +60,22 @@ function handleScroll() {
 
 const feed = () => {
   loading.value = true;
-  apiService.get(`api/photo/?_page=${page.value}&_total=6&_user=0`)
+  const url = cursor.value
+    ? `feed?per_page=15&cursor=${cursor.value}`
+    : `feed?per_page=15`;
+
+  apiService.get(url)
     .then((response) => {
-      if (response.data.length === 0) {
+      const feedResponse = response.data as FeedResponse;
+      if (feedResponse.data.length === 0) {
         hasMore.value = false;
       } else {
-        photos.value = [...photos.value, ...response.data];
-        page.value++;
+        photos.value = [...photos.value, ...feedResponse.data.map(photo => ({
+          id: photo.uuid,
+          src: photo.feed_url,
+          published_at: photo.published_at,
+        }))];
+        cursor.value = feedResponse.meta.next_cursor;
       }
     })
     .catch((error) => {
