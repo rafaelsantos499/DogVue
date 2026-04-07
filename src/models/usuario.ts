@@ -1,9 +1,10 @@
 export interface Usuario {
-  created_at: string,
-  email: string,
-  email_verified_at: string,
-  google_id: string | null,
-  id: number,
+  uuid: string,
   name: string,
+  email: string,
+  google_id: string | null,
+  email_verified_at: string | null,
+  comment_timeout_until: string | null,
+  created_at: string,
   updated_at: string,
 }

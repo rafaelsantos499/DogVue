@@ -35,6 +35,8 @@ async function refreshAccessToken(): Promise<string | null> {
       })
       .catch(() => {
         tokenService.clearTokens();
+        // Notifica a aplicação para forçar logout (sem importar a store diretamente)
+        window.dispatchEvent(new CustomEvent('auth:logout'));
         return null;
       })
       .finally(() => {

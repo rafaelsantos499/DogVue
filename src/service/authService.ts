@@ -34,7 +34,12 @@ export const authService = {
   },
 
   async me(): Promise<Usuario> {
-    return apiService.get<Usuario>('/auth/me');
+    const raw = await apiService.get<{ user: Usuario } | Usuario>('/auth/me');
+    // Suporte a backends que retornam { user: {...} } e aos que retornam o objeto direto
+    if (raw && typeof (raw as { user?: unknown }).user === 'object' && (raw as { user?: unknown }).user !== null) {
+      return (raw as { user: Usuario }).user;
+    }
+    return raw as Usuario;
   },
 
   // Alias mantido para compatibilidade com store existente

@@ -1,4 +1,5 @@
 import { useUserStore } from "@/store";
+import { tokenService } from "@/service/tokenService";
 import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
@@ -73,14 +74,14 @@ router.beforeEach(async (to) => {
   if (to.matched.some((record) => record.meta.login)) {
     const store = useUserStore();
     if (!store.login) {
-      if (!window.localStorage.token) {
+      if (!tokenService.isAuthenticated()) {
         return { name: "login" };
       }
       try {
         await store.getUsuario();
         store.updateLogin(true);
       } catch {
-        window.localStorage.removeItem("token");
+        tokenService.clearTokens();
         return { name: "login" };
       }
     }

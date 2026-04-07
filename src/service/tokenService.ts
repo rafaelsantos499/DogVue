@@ -10,8 +10,16 @@ export const tokenService = {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   },
 
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem(TOKEN_KEY);
+  },
+
   saveTokens(accessToken: string, refreshToken?: string): void {
-    localStorage.setItem(TOKEN_KEY, `Bearer ${accessToken}`);
+    // Guard against double Bearer prefix
+    const bearer = accessToken.startsWith('Bearer ')
+      ? accessToken
+      : `Bearer ${accessToken}`;
+    localStorage.setItem(TOKEN_KEY, bearer);
     if (refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }

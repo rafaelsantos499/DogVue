@@ -35,9 +35,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "@/store";
 
 const store = useUserStore();
+const router = useRouter();
 const username = ref("");
 const email = ref("");
 const password = ref("");
@@ -49,16 +51,15 @@ async function handleSubmit() {
   erros.value = "";
   try {
     loadingCreaterUser.value = false;
+    // criarUsuario já salva o token e define login=true internamente
     await store.criarUsuario({
       name: username.value,
       email: email.value,
       password: password.value,
     });
-    await store.logarUsuario({
-      email: email.value,
-      password: password.value,
-    });
     createrUserSuccess.value = true;
+    // Pequeno delay para o usuário ver a mensagem de sucesso
+    setTimeout(() => router.push("/conta"), 1000);
   } catch (err: any) {
     loadingCreaterUser.value = true;
     erros.value = err.response?.data?.message ?? 'Erro ao criar conta.';

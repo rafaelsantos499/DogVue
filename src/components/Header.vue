@@ -43,19 +43,12 @@
 </template>
 <script setup lang="ts">
 import { useUserStore } from "@/store";
-import { ref, watch } from "vue";
+import { computed } from "vue";
 import { storeToRefs } from "pinia";
 
 const store = useUserStore();
 const { login, usuario } = storeToRefs(store);
-const user = ref(usuario.value.name || "");
-
-watch(
-  () => store.login,
-  () => {
-    user.value = usuario.value.name || "";
-  }
-);
+const user = computed(() => usuario.value.name || "");
 </script>
 <style scoped>
 .login::after {

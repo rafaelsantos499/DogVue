@@ -7,16 +7,18 @@ import type { LoginPayload, RegisterPayload } from "./models/Login";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
 import { authService } from "./service/authService";
+import { tokenService } from "./service/tokenService";
 
 export const useUserStore = defineStore("user", () => {
   const login = ref(false);
   const usuario = ref<Usuario>({
-    id: 0,
-    email: "",
+    uuid: "",
     name: "",
-    created_at: "",
-    email_verified_at: "",
+    email: "",
     google_id: null,
+    email_verified_at: null,
+    comment_timeout_until: null,
+    created_at: "",
     updated_at: "",
   });
 
@@ -28,8 +30,12 @@ export const useUserStore = defineStore("user", () => {
     login.value = value;
   }
 
+  // Registra usuário e já salva o token retornado (evita segunda chamada de login)
   async function criarUsuario(payload: RegisterPayload) {
-    await authService.register(payload);
+    const { access_token, refresh_token, user } = await authService.register(payload);
+    authService.saveToken(access_token, refresh_token);
+    updateUsuario(user);
+    updateLogin(true);
   }
 
   async function logarUsuario(payload: LoginPayload) {
@@ -56,18 +62,34 @@ export const useUserStore = defineStore("user", () => {
     await router.push("/conta");
   }
 
-  function deslogarUsuario() {
+  // Limpa o estado local do usuário (usado internamente e pelo evento auth:logout)
+  function _clearUserState() {
     updateLogin(false);
     updateUsuario({
-      id: 0,
-      email: "",
+      uuid: "",
       name: "",
-      created_at: "",
-      email_verified_at: "",
+      email: "",
       google_id: null,
+      email_verified_at: null,
+      comment_timeout_until: null,
+      created_at: "",
       updated_at: "",
     });
-    authService.removeToken();
+  }
+
+  async function deslogarUsuario() {
+    try {
+      await authService.logout(); // invalida token no servidor + limpa localStorage
+    } catch {
+      tokenService.clearTokens(); // fallback: servidor indisponível
+    }
+    _clearUserState();
+    router.push({ name: "login" });
+  }
+
+  // Chamado quando o refresh token falha (evento disparado pelo apiService)
+  function handleAuthExpired() {
+    _clearUserState();
     router.push({ name: "login" });
   }
 
@@ -81,5 +103,6 @@ export const useUserStore = defineStore("user", () => {
     loginComGoogle,
     getUsuario,
     deslogarUsuario,
+    handleAuthExpired,
   };
 });
