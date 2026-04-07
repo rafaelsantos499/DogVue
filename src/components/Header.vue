@@ -41,32 +41,21 @@
     </nav>
   </header>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import { useUserStore } from "@/store";
-import { onMounted, onUnmounted, ref, watch, type Ref } from "vue";
+import { ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 
-export default {
-  setup() {
-    const store = useUserStore();
-    const { login, usuario } = storeToRefs(store);
-    const user: Ref<string> = ref("");
+const store = useUserStore();
+const { login, usuario } = storeToRefs(store);
+const user = ref(usuario.value.name || "");
 
-    watch(
-      () => store.login,
-      () => {
-        console.log("Login changed:", store.login);
-        console.log("usuario:", usuario.value);
-        user.value = usuario.value.name || "";
-      }
-    );
-
-    return {
-      user,
-      login,
-    };
-  },
-};
+watch(
+  () => store.login,
+  () => {
+    user.value = usuario.value.name || "";
+  }
+);
 </script>
 <style scoped>
 .login::after {
