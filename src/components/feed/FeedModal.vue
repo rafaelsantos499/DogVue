@@ -1,5 +1,5 @@
 <template>
-  <div v-if="photoId" class="modal-overlay" @click="handleOutsideClick">
+  <div v-if="postUuid" class="modal-overlay" @click="handleOutsideClick">
     <div v-if="photoData" class="modal-content animeLeft">
       <PhotoContent :data="photoData" :single="false" />
     </div>
@@ -9,26 +9,30 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { apiService } from '@/service/apiService';
+import { postService } from '@/service/postService';
+import { commentService } from '@/service/commentService';
 import type { PhotoData } from '@/models/Photo';
 import PhotoContent from '@/components/photo/PhotoContent.vue';
 import Loading from '@/components/helper/Loading.vue';
 
-const photoId = defineModel<number | null>({ default: null });
+const postUuid = defineModel<string | null>({ default: null });
 const photoData = ref<PhotoData | null>(null);
 
 const emit = defineEmits<{
   close: [];
 }>();
 
-watch(photoId, async (id) => {
-  if (id) {
+watch(postUuid, async (uuid) => {
+  if (uuid) {
     document.body.style.overflow = 'hidden';
     try {
-      const { data } = await apiService.get(`api/photo/${id}`);
-      photoData.value = data;
+      const [post, comments] = await Promise.all([
+        postService.getPost(uuid),
+        commentService.getComments(uuid),
+      ]);
+      photoData.value = { post, comments: comments.data };
     } catch (error) {
-      console.error('Erro ao carregar foto:', error);
+      console.error('Erro ao carregar post:', error);
     }
   } else {
     photoData.value = null;
@@ -38,7 +42,7 @@ watch(photoId, async (id) => {
 
 function handleOutsideClick(event: MouseEvent) {
   if (event.target === event.currentTarget) {
-    photoId.value = null;
+    postUuid.value = null;
     emit('close');
   }
 }

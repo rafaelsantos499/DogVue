@@ -1,37 +1,30 @@
 <template>
   <div class="photo-content" :class="{ single }">
     <div class="photo-img">
-      <img :src="data.photo.src" :alt="data.photo.title" />
+      <img :src="data.post.feed_url ?? data.post.original_url" :alt="data.post.title" />
     </div>
     <div class="photo-details">
       <div>
-        <p class="photo-author">
-          <router-link :to="`/perfil/${data.photo.author}`">
-            @{{ data.photo.author }}
-          </router-link>
-          <span class="photo-visualizacoes">{{ data.photo.acessos }}</span>
-        </p>
         <h1 class="photo-title">
-          <router-link :to="`/foto/${data.photo.id}`">
-            {{ data.photo.title }}
-          </router-link>
+          {{ data.post.title }}
         </h1>
         <ul class="photo-attributes">
-          <li>{{ data.photo.peso }} kg</li>
-          <li>{{ data.photo.idade }} anos</li>
+          <li v-if="data.post.weight">{{ data.post.weight }} kg</li>
+          <li v-if="data.post.age">{{ data.post.age }} anos</li>
         </ul>
       </div>
       <PhotoComments
-        :id="data.photo.id"
+        :post-uuid="data.post.uuid"
         :comments="data.comments"
-        @newComment="handleNewComment"
+        @new-comment="handleNewComment"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { PhotoData, Comment } from '@/models/Photo';
+import type { PhotoData } from '@/models/Photo';
+import type { Comment } from '@/models/Comment';
 import PhotoComments from './PhotoComments.vue';
 
 const props = defineProps<{

@@ -1,9 +1,9 @@
 <template>
   <div class="comments overflow-auto p-3" style="word-break: break-word;">
     <ul class="list-unstyled mb-3">
-      <li v-for="comment in comments" :key="comment.comment_ID" class="mb-2 small lh-sm">
-        <strong>{{ comment.comment_author }}: </strong>
-        <span>{{ comment.comment_content }}</span>
+      <li v-for="comment in comments" :key="comment.uuid" class="mb-2 small lh-sm">
+        <strong>{{ comment.user.name }}: </strong>
+        <span>{{ comment.body }}</span>
       </li>
     </ul>
     <form v-if="loggedIn" class="d-grid mt-3" style="grid-template-columns: 1fr auto; align-items: stretch;" @submit.prevent="handleSubmit">
@@ -29,12 +29,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { apiService } from '@/service/apiService';
+import { commentService } from '@/service/commentService';
 import { useUserStore } from '@/store';
-import type { Comment } from '@/models/Photo';
+import type { Comment } from '@/models/Comment';
 
 const props = defineProps<{
-  id: number;
+  postUuid: string;
   comments: Comment[];
 }>();
 
@@ -49,10 +49,8 @@ const newComment = ref('');
 async function handleSubmit() {
   if (!newComment.value.trim()) return;
   try {
-    const { data } = await apiService.post(`api/comment/${props.id}`, {
-      comment: newComment.value,
-    });
-    emit('newComment', data);
+    const comment = await commentService.addComment(props.postUuid, newComment.value);
+    emit('newComment', comment);
     newComment.value = '';
   } catch (error) {
     console.error('Erro ao comentar:', error);

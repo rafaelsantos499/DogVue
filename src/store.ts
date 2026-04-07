@@ -3,7 +3,7 @@ import { ref } from "vue";
 import type { Usuario } from "./models/usuario";
 import router from "./router";
 
-import type { Login, CreaterUser } from "./models/Login";
+import type { LoginPayload, RegisterPayload } from "./models/Login";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
 import { authService } from "./service/authService";
@@ -28,11 +28,11 @@ export const useUserStore = defineStore("user", () => {
     login.value = value;
   }
 
-  async function criarUsuario(payload: CreaterUser) {
+  async function criarUsuario(payload: RegisterPayload) {
     await authService.register(payload);
   }
 
-  async function logarUsuario(payload: Login) {
+  async function logarUsuario(payload: LoginPayload) {
     const { access_token, refresh_token, user } = await authService.login(payload);
     authService.saveToken(access_token, refresh_token);
     updateUsuario(user);
@@ -41,7 +41,7 @@ export const useUserStore = defineStore("user", () => {
   }
 
   async function getUsuario(): Promise<Usuario> {
-    const { access_token, user } = await authService.validate();
+    const user = await authService.me();
     updateUsuario(user);
     return user;
   }
@@ -49,8 +49,7 @@ export const useUserStore = defineStore("user", () => {
   async function loginComGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
     const firebaseToken = await result.user.getIdToken();
-    const { access_token, refresh_token, user } =
-      await authService.loginGoogle(firebaseToken);
+    const { access_token, refresh_token, user } = await authService.loginWithFirebase(firebaseToken);
     authService.saveToken(access_token, refresh_token);
     updateUsuario(user);
     updateLogin(true);

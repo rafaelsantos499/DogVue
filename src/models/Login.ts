@@ -1,10 +1,14 @@
-export interface Login {
+export interface LoginPayload {
   email: string;
   password: string;
 }
 
-export interface CreaterUser {
+export interface RegisterPayload {
+  name: string;
   email: string;
   password: string;
-  nome: string;
 }
+
+// Legacy aliases mantidos para compatibilidade
+export type Login = LoginPayload;
+export type CreaterUser = RegisterPayload;

@@ -8,7 +8,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { apiService } from '@/service/apiService';
+import { postService } from '@/service/postService';
+import { commentService } from '@/service/commentService';
 import type { PhotoData } from '@/models/Photo';
 import PhotoContent from '@/components/photo/PhotoContent.vue';
 import Loading from '@/components/helper/Loading.vue';
@@ -17,11 +18,15 @@ const route = useRoute();
 const photoData = ref<PhotoData | null>(null);
 
 onMounted(async () => {
+  const id = String(route.params.id);
   try {
-    const { data } = await apiService.get(`api/photo/${route.params.id}`);
-    photoData.value = data;
+    const [post, comments] = await Promise.all([
+      postService.getPost(id),
+      commentService.getComments(id),
+    ]);
+    photoData.value = { post, comments: comments.data };
   } catch (error) {
-    console.error('Erro ao carregar foto:', error);
+    console.error('Erro ao carregar post:', error);
   }
 });
 </script>

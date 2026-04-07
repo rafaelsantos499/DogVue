@@ -32,60 +32,37 @@
     </form>
   </section>
 </template>
-<script lang="ts">
-import { reactive, ref } from "vue";
-import type { CreaterUser } from "@/models/Login";
+
+<script setup lang="ts">
+import { ref } from "vue";
 import { useUserStore } from "@/store";
-import { useRouter } from "vue-router";
 
-export default {
-  name: "LoginCreater",
-  setup() {
-    const route = useRouter();
-    const store = useUserStore();
-    const username = ref("");
-    const email = ref("");
-    const password = ref("");
-    const erros = ref("");
-    const loadingCreaterUser = ref(true);
-    const createrUserSuccess = ref(false);
+const store = useUserStore();
+const username = ref("");
+const email = ref("");
+const password = ref("");
+const erros = ref("");
+const loadingCreaterUser = ref(true);
+const createrUserSuccess = ref(false);
 
-    async function handleSubmit() {
-      const dateUser: CreaterUser = {
-        nome: username.value,
-        email: email.value,
-        password: password.value,
-      };
-
-      const dateLogin = {
-        email: email.value,
-        password: password.value,
-      };
-
-      erros.value = "";
-
-      try {
-        loadingCreaterUser.value = false;
-        await store.criarUsuario(dateUser);
-        await store.logarUsuario(dateLogin);
-        createrUserSuccess.value = true;
-      } catch (err: any) {
-        console.log(err.response.data.message);
-        loadingCreaterUser.value = true;
-        erros.value = err.response.data.message;
-      }
-    }
-
-    return {
-      handleSubmit,
-      username,
-      email,
-      password,
-      erros,
-      loadingCreaterUser,
-      createrUserSuccess,
-    };
-  },
-};
+async function handleSubmit() {
+  erros.value = "";
+  try {
+    loadingCreaterUser.value = false;
+    await store.criarUsuario({
+      name: username.value,
+      email: email.value,
+      password: password.value,
+    });
+    await store.logarUsuario({
+      email: email.value,
+      password: password.value,
+    });
+    createrUserSuccess.value = true;
+  } catch (err: any) {
+    loadingCreaterUser.value = true;
+    erros.value = err.response?.data?.message ?? 'Erro ao criar conta.';
+  }
+}
 </script>
 <style lang=""></style>

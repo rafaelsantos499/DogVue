@@ -1,34 +1,12 @@
-export interface Photo {
-  id: string | number;
-  title?: string;
-  src: string;
-  acessos?: string;
-  author?: string;
-  peso?: string;
-  idade?: string;
-  published_at?: string;
-}
+// Barrel de compatibilidade — prefira importar dos arquivos específicos
+export type { FeedItem as Photo, FeedResponse } from './Feed';
+export type { Comment } from './Comment';
+export type { Post } from './Post';
 
-export interface Comment {
-  comment_ID: string;
-  comment_author: string;
-  comment_content: string;
-}
+import type { Post } from './Post';
+import type { Comment } from './Comment';
 
 export interface PhotoData {
-  photo: Photo;
+  post: Post;
   comments: Comment[];
-}
-
-export interface FeedResponse {
-  data: Array<{
-    uuid: string;
-    feed_url: string;
-    published_at: string;
-    id: string | null;
-  }>;
-  meta: {
-    per_page: number;
-    next_cursor: string | null;
-  };
 }

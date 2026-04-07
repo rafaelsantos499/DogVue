@@ -5,14 +5,14 @@
     <div v-if="!hasMore && photos.length" class="loadingWrapper">
       <p>Não existem mais fotos.</p>
     </div>
-    <FeedModal v-model="selectedPhotoId" @close="closeModal" />
+    <FeedModal v-model="selectedPhotoUuid" @close="closeModal" />
   </main>
 </template>
 <script setup lang="ts">
-import { apiService } from '@/service/apiService';
+import { feedService } from '@/service/feedService';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import type { FeedResponse, Photo } from '@/models/Photo';
+import type { FeedItem } from '@/models/Feed';
 import Feed from '@/components/feed/Feed.vue';
 import FeedModal from '@/components/feed/FeedModal.vue';
 import Loading from '@/components/helper/Loading.vue';
@@ -20,29 +20,28 @@ import Loading from '@/components/helper/Loading.vue';
 const route = useRoute();
 const router = useRouter();
 
-const photos = ref<Photo[]>([]);
-const page = ref(1);
+const photos = ref<FeedItem[]>([]);
 const loading = ref(false);
 const hasMore = ref(true);
-const selectedPhotoId = ref<number | null>(null);
+const selectedPhotoUuid = ref<string | null>(null);
 const cursor = ref<string | null>(null);
 
 if (route.params.id) {
-  selectedPhotoId.value = Number(route.params.id);
+  selectedPhotoUuid.value = String(route.params.id);
 }
 
-function openModal(id: number) {
-  selectedPhotoId.value = id;
-  router.push(`/feed/photo/${id}`);
+function openModal(uuid: string) {
+  selectedPhotoUuid.value = uuid;
+  router.push(`/feed/photo/${uuid}`);
 }
 
 function closeModal() {
-  selectedPhotoId.value = null;
+  selectedPhotoUuid.value = null;
   router.push('/');
 }
 
 onMounted(() => {
-  feed();
+  loadFeed();
   window.addEventListener('scroll', handleScroll);
 });
 
@@ -54,36 +53,26 @@ function handleScroll() {
   const { scrollTop, scrollHeight } = document.documentElement;
   const windowHeight = window.innerHeight;
   if (scrollTop + windowHeight >= scrollHeight - 10 && !loading.value && hasMore.value) {
-    feed();
+    loadFeed();
   }
 }
 
-const feed = () => {
+async function loadFeed() {
   loading.value = true;
-  const url = cursor.value
-    ? `feed?per_page=15&cursor=${cursor.value}`
-    : `feed?per_page=15`;
-
-  apiService.get(url)
-    .then((response) => {
-      const feedResponse = response.data as FeedResponse;
-      if (feedResponse.data.length === 0) {
-        hasMore.value = false;
-      } else {
-        photos.value = [...photos.value, ...feedResponse.data.map(photo => ({
-          id: photo.uuid,
-          src: photo.feed_url,
-          published_at: photo.published_at,
-        }))];
-        cursor.value = feedResponse.meta.next_cursor;
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching feed:", error);
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+  try {
+    const response = await feedService.getFeed({ per_page: 15, cursor: cursor.value });
+    if (response.data.length === 0) {
+      hasMore.value = false;
+    } else {
+      photos.value = [...photos.value, ...response.data];
+      cursor.value = response.meta.next_cursor;
+      if (!response.meta.next_cursor) hasMore.value = false;
+    }
+  } catch (error) {
+    console.error('Erro ao carregar feed:', error);
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 <style>

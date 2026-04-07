@@ -1,99 +1,87 @@
-import axios from "axios";
-import { authService } from "./authService";
+import axios from 'axios';
+import type { AxiosRequestConfig } from 'axios';
+import { tokenService } from './tokenService';
 
-let refreshRequest: Promise<string | null> | null = null;
+let refreshPromise: Promise<string | null> | null = null;
 
-const axiosPadrao = axios.create({
-  baseURL: "http://localhost:8080/api/",
+export const http = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api',
 });
 
-async function refreshAccessToken(): Promise<string | null> {
-  const storedRefreshToken = window.localStorage.getItem("refreshToken");
-
-  if (!storedRefreshToken) {
-    return null;
+// ─── Request interceptor: injeta Bearer token em todas as requisições ────────
+http.interceptors.request.use((config) => {
+  const token = tokenService.getToken();
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = token;
   }
+  return config;
+});
 
-  if (!refreshRequest) {
-    refreshRequest = authService.refreshToken(storedRefreshToken)
-      .then(( { access_token, refresh_token } ) => {
-        const nextAccessToken = access_token as string | undefined;
-        const nextRefreshToken = refresh_token as string | undefined;
+// ─── Renovação silenciosa de token (singleton promise) ──────────────────────
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = tokenService.getRefreshToken();
+  if (!refreshToken) return null;
 
-        if (!nextAccessToken) {
-          return null;
-        }
-
-        authService.saveToken(nextAccessToken, nextRefreshToken);
-
-        if (nextRefreshToken) {
-          window.localStorage.setItem("refreshToken", nextRefreshToken);
-        }
-
-        return nextAccessToken;
+  if (!refreshPromise) {
+    refreshPromise = http
+      .post<{ access_token: string; refresh_token: string }>(
+        '/auth/refresh',
+        null,
+        { headers: { Authorization: `Bearer ${refreshToken}` } },
+      )
+      .then(({ data }) => {
+        tokenService.saveTokens(data.access_token, data.refresh_token);
+        return `Bearer ${data.access_token}`;
       })
       .catch(() => {
-       authService.removeToken();
+        tokenService.clearTokens();
         return null;
       })
       .finally(() => {
-        refreshRequest = null;
+        refreshPromise = null;
       });
   }
 
-  return refreshRequest;
+  return refreshPromise;
 }
 
-axiosPadrao.interceptors.request.use(
-  function (config) {
-    const token = window.localStorage.token;
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = token;
-    }
-    return config;
-  },
-  function (error) {
-    return Promise.reject(error);
-  }
-);
-
-axiosPadrao.interceptors.response.use(
-  function (response) {
-    return response;
-  },
-  async function (error) {
-    const originalRequest = error.config;
-    const requestUrl = originalRequest?.url || "";
+// ─── Response interceptor: retry automático em 401 ──────────────────────────
+http.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (
       error.response?.status !== 401 ||
-      !originalRequest ||
-      originalRequest._retry ||
-      requestUrl.includes("/auth/refresh")
+      !original ||
+      original._retry ||
+      (original.url as string)?.includes('/auth/refresh')
     ) {
       return Promise.reject(error);
     }
 
-    originalRequest._retry = true;
+    original._retry = true;
+    const newToken = await refreshAccessToken();
+    if (!newToken) return Promise.reject(error);
 
-    const nextAccessToken = await refreshAccessToken();
-
-    if (!nextAccessToken) {
-      return Promise.reject(error);
-    }
-
-    originalRequest.headers = originalRequest.headers || {};
-    originalRequest.headers.Authorization = "Bearer " + nextAccessToken;
-
-    return axiosPadrao(originalRequest);
-  }
+    original.headers = { ...original.headers, Authorization: newToken };
+    return http(original);
+  },
 );
 
+// ─── API pública tipada ───────────────────────────────────────────────────────
 export const apiService = {
-  post(endpoint: string, body: any, config?: any) {
-    return axiosPadrao.post(endpoint, body, config);
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return http.get<T>(url, config).then((r) => r.data);
   },
-  get(endpoint: string) {
-    return axiosPadrao.get(endpoint);
-  }, 
+  post<T = unknown>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return http.post<T>(url, body, config).then((r) => r.data);
+  },
+  put<T = unknown>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return http.put<T>(url, body, config).then((r) => r.data);
+  },
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return http.delete<T>(url, config).then((r) => r.data);
+  },
 };
+

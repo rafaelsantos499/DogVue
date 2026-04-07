@@ -1,51 +1,69 @@
-import type { Login, CreaterUser } from "@/models/Login";
-import { apiService } from "./apiService";
-import type { Usuario } from "@/models/usuario";
+import type { LoginPayload, RegisterPayload } from '@/models/Login';
+import type { AuthResponse } from '@/models/Auth';
+import type { Usuario } from '@/models/usuario';
+import { apiService } from './apiService';
+import { tokenService } from './tokenService';
 
-interface AuthloginResponse {
-    access_token: string;
-    expires_in: number;
-    refresh_token: string;
-    token_type: string;
-    user: Usuario
+// Shape bruta retornada por /auth/login e /auth/register
+interface LoginApiResponse {
+  token?: string;
+  access_token?: string;
+  refresh_token?: string;
+  user: Usuario;
+}
+
+function normalizeAuthResponse(raw: LoginApiResponse): AuthResponse {
+  return {
+    access_token: raw.access_token ?? raw.token ?? '',
+    refresh_token: raw.refresh_token ?? '',
+    token_type: 'Bearer',
+    expires_in: 3600,
+    user: raw.user,
+  };
 }
 
 export const authService = {
-    async login(body: Login) : Promise<AuthloginResponse> {
-        const { data } = await apiService.post(
-            "/auth/login",
-            body
-        );
-        return data;
-    },
-    async validate(): Promise<AuthloginResponse> {
-        const { data } = await apiService.get(
-            "/auth/me"
-        );
-        return data;
-    },
-    async refreshToken(refreshToken: string): Promise<AuthloginResponse> {
-        const { data } = await apiService.post("/auth/refresh", {}, {
-            headers: { Authorization: "Bearer " + refreshToken },
-        });
-        return data;
-    },
-    saveToken(token: string,refreshToken?: string) {
-        window.localStorage.setItem("token", "Bearer " + token);
-        if (refreshToken) {
-            window.localStorage.setItem("refreshToken", refreshToken);
-        }
-    },
-    removeToken() {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("refreshToken");
-    },
-    async loginGoogle(idToken: string): Promise<AuthloginResponse> {
-        const { data } = await apiService.post("auth/firebase", { id_token: idToken });
-        return data;
-    },
-    async register(body: CreaterUser) {
-        const { data } = await apiService.post("api/user", body);
-        return data;
-    },
-}
+  async register(payload: RegisterPayload): Promise<AuthResponse> {
+    const raw = await apiService.post<LoginApiResponse>('/auth/register', payload);
+    return normalizeAuthResponse(raw);
+  },
+
+  async login(payload: LoginPayload): Promise<AuthResponse> {
+    const raw = await apiService.post<LoginApiResponse>('/auth/login', payload);
+    return normalizeAuthResponse(raw);
+  },
+
+  async me(): Promise<Usuario> {
+    return apiService.get<Usuario>('/auth/me');
+  },
+
+  // Alias mantido para compatibilidade com store existente
+  async validate(): Promise<AuthResponse> {
+    const user = await this.me();
+    return { access_token: '', refresh_token: '', token_type: 'Bearer', expires_in: 0, user };
+  },
+
+  async logout(): Promise<void> {
+    await apiService.post('/auth/logout');
+    tokenService.clearTokens();
+  },
+
+  async loginWithFirebase(idToken: string): Promise<AuthResponse> {
+    const raw = await apiService.post<LoginApiResponse>('/auth/firebase', { id_token: idToken });
+    return normalizeAuthResponse(raw);
+  },
+
+  // Alias mantido para compatibilidade com store e firebase
+  async loginGoogle(idToken: string): Promise<AuthResponse> {
+    return this.loginWithFirebase(idToken);
+  },
+
+  saveToken(accessToken: string, refreshToken?: string): void {
+    tokenService.saveTokens(accessToken, refreshToken);
+  },
+
+  removeToken(): void {
+    tokenService.clearTokens();
+  },
+};
+
