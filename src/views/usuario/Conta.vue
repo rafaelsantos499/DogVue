@@ -1,5 +1,5 @@
 <template>
-  <section class="container">
+  <section class="container mx-auto px-4">
     <UserHeader />
 
     <router-view></router-view>

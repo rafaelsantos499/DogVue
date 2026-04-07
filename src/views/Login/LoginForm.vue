@@ -2,7 +2,7 @@
   <section class="animeLeft">
     <h1 class="title">Login</h1>
 
-    <form action="" class="mb-4">
+    <form action="" class="mb-6">
       <label for="username">Usuário</label>
       <input type="text" id="username" v-model="username" name="username" />
       <label for="password">Senha</label>
@@ -11,7 +11,7 @@
       <button
         v-if="!buttonLoading"
         type="submit"
-        class="h6 text-dark border-0 rounded-1 bg-warning text-primary py-2 px-4"
+        class="text-base text-gray-900 border-none rounded bg-amber-400 py-2 px-6"
         style="min-width: 8rem"
         @click.prevent="handleSubmit"
       >
@@ -20,7 +20,7 @@
       <button
         v-else
         type="submit"
-        class="h6 border-0 text-dark rounded-1 bg-warning text-primary py-2 px-4"
+        class="text-base border-none text-gray-900 rounded bg-amber-400 py-2 px-6"
         style="min-width: 8rem"
         @click.prevent="handleSubmit"
         disabled
@@ -29,7 +29,7 @@
       </button>
     </form>
     <button
-      class="btn-google d-flex align-items-center justify-content-center gap-2 border-0 rounded-1 py-2 px-4 w-100 mb-4"
+      class="btn-google flex items-center justify-center gap-2 border-none rounded py-2 px-6 w-full mb-6"
       @click="handleGoogleLogin"
       :disabled="googleLoading"
     >
@@ -41,17 +41,17 @@
       </svg>
       <span>{{ googleLoading ? 'Conectando...' : 'Entrar com Google' }}</span>
     </button>
-    <router-link class="text-secondary p-2" :to="{ name: 'LoginPasswordLost' }"
+    <router-link class="text-gray-500 p-2" :to="{ name: 'LoginPasswordLost' }"
       >Perdeu a senha?</router-link
     >
-    <div class="mt-5">
-      <h2 class="mb-3 h1" style="font-family: var(--type-second)">
+    <div class="mt-12">
+      <h2 class="mb-4 text-4xl font-bold" style="font-family: var(--type-second)">
         Cadastre-se
       </h2>
-      <p class="h5">Ainda não possui conta? Cadastre-se no site.</p>
+      <p class="text-xl">Ainda não possui conta? Cadastre-se no site.</p>
       <router-link :to="{ name: 'LoginCreater' }"
         ><button
-          class="h6 mt-4 border-0 text-dark rounded-1 bg-warning text-primary py-2 px-4"
+          class="text-base mt-6 border-none text-gray-900 rounded bg-amber-400 py-2 px-6"
           style="min-width: 8rem"
         >
           Cadastre-se

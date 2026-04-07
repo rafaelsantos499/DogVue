@@ -1,12 +1,12 @@
 <template>
-  <div class="comments overflow-auto p-3" style="word-break: break-word;">
-    <ul class="list-unstyled mb-3">
-      <li v-for="comment in comments" :key="comment.uuid" class="mb-2 small lh-sm">
+  <div class="comments overflow-auto p-4" style="word-break: break-word;">
+    <ul class="list-none mb-4">
+      <li v-for="comment in comments" :key="comment.uuid" class="mb-2 text-sm leading-tight">
         <strong>{{ comment.user.name }}: </strong>
         <span>{{ comment.body }}</span>
       </li>
     </ul>
-    <form v-if="loggedIn" class="d-grid mt-3" style="grid-template-columns: 1fr auto; align-items: stretch;" @submit.prevent="handleSubmit">
+    <form v-if="loggedIn" class="grid mt-4" style="grid-template-columns: 1fr auto; align-items: stretch;" @submit.prevent="handleSubmit">
       <textarea
         v-model="newComment"
         placeholder="Comente..."

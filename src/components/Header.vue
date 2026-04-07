@@ -1,7 +1,7 @@
 <template>
-  <header class="shadow-sm bg-white position-fidex w-100">
+  <header class="shadow-sm bg-white fixed w-full">
     <nav
-      class="container d-flex justify-content-between align-items-center"
+      class="container mx-auto px-4 flex justify-between items-center"
       style="height: 4rem"
     >
       <router-link to="/" class="p-1">
@@ -26,13 +26,13 @@
       <router-link
         v-if="!login"
         :to="{ name: 'login' }"
-        class="login text-secondary"
+        class="login text-gray-500"
         >login / Criar</router-link
       >
       <router-link v-else to="/conta">
         <button
           type="submit"
-          class="h6 border-0 rounded-1 bg-warning text-primary py-2 px-4"
+          class="text-base border-none rounded bg-amber-400 text-gray-900 py-2 px-6"
           style="min-width: 8rem"
         >
           {{ user }}

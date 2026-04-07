@@ -1,6 +1,6 @@
 <template>
   <section class="login">
-    <div class="form p-3">
+    <div class="form p-4">
       <router-view></router-view>
     </div>
   </section>

@@ -8,13 +8,13 @@
       <input type="email" id="email" name="email" v-model="email" />
       <label for="password">Senha</label>
       <input type="password" id="password" name="password" v-model="password" />
-      <p class="text-danger">{{ erros }}</p>
-      <p v-if="createrUserSuccess" class="text-success">
+      <p class="text-red-600">{{ erros }}</p>
+      <p v-if="createrUserSuccess" class="text-green-600">
         Sua conta foi Criada com sucesso
       </p>
       <button
         v-if="loadingCreaterUser"
-        class="h6 mt-4 border-0 text-dark rounded-1 bg-warning text-primary py-2 px-4"
+        class="text-base mt-6 border-none text-gray-900 rounded bg-amber-400 py-2 px-6"
         style="min-width: 8rem"
         @click.prevent="handleSubmit"
       >
@@ -22,7 +22,7 @@
       </button>
       <button
         v-else
-        class="h6 mt-4 border-0 text-dark rounded-1 bg-warning text-primary py-2 px-4"
+        class="text-base mt-6 border-none text-gray-900 rounded bg-amber-400 py-2 px-6"
         style="min-width: 8rem"
         @click.prevent="handleSubmit"
         disabled
