@@ -8,12 +8,28 @@ export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api',
 });
 
-// ─── Request interceptor: injeta Bearer token em todas as requisições ────────
+// Atualiza o header padrão em todas as requisições futuras
+export function setAuthHeader(token: string | null): void {
+  if (token) {
+    http.defaults.headers.common['Authorization'] = token;
+  } else {
+    delete http.defaults.headers.common['Authorization'];
+  }
+}
+
+// Inicializa o header no carregamento do módulo (ex: F5 com token no localStorage)
+const _initialToken = tokenService.getToken();
+if (_initialToken) {
+  setAuthHeader(_initialToken);
+}
+
+// ─── Request interceptor: garante que o token mais recente seja sempre enviado ───
 http.interceptors.request.use((config) => {
   const token = tokenService.getToken();
-  if (token && !config.headers.Authorization) {
-    config.headers.Authorization = token;
+  if (token) {
+    config.headers['Authorization'] = token;
   }
+  console.debug('[apiService]', config.method?.toUpperCase(), config.url, '| token no localStorage:', token ? token.substring(0, 30) + '...' : 'NENHUM');
   return config;
 });
 
@@ -31,11 +47,13 @@ async function refreshAccessToken(): Promise<string | null> {
       )
       .then(({ data }) => {
         tokenService.saveTokens(data.access_token, data.refresh_token);
-        return `Bearer ${data.access_token}`;
+        const newToken = `Bearer ${data.access_token}`;
+        setAuthHeader(newToken);
+        return newToken;
       })
       .catch(() => {
         tokenService.clearTokens();
-        // Notifica a aplicação para forçar logout (sem importar a store diretamente)
+        setAuthHeader(null);
         window.dispatchEvent(new CustomEvent('auth:logout'));
         return null;
       })

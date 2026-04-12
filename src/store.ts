@@ -40,7 +40,9 @@ export const useUserStore = defineStore("user", () => {
 
   async function logarUsuario(payload: LoginPayload) {
     const { access_token, refresh_token, user } = await authService.login(payload);
+    console.log('[store] login ok — token:', access_token?.substring(0, 20), '| user:', user?.name);
     authService.saveToken(access_token, refresh_token);
+    console.log('[store] localStorage token após saveToken:', localStorage.getItem('token')?.substring(0, 30));
     updateUsuario(user);
     updateLogin(true);
     await router.push("/conta");

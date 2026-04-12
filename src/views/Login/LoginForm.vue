@@ -60,61 +60,40 @@
     </div>
   </section>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import { ref } from "vue";
 import ErrorNotificacao from "../../components/error/ErrorNotificacao.vue";
-import type { Login } from "../../models/Login";
 import { useUserStore } from "@/store";
 
-export default {
-  name: "LoginForm",
-  components: { ErrorNotificacao },
-  setup() {
-    const store = useUserStore();
-    const username = ref("");
-    const password = ref("");
-    const erros = ref<string[]>([]);
-    const buttonLoading = ref(false);
-    const googleLoading = ref(false);
+const store = useUserStore();
+const username = ref("");
+const password = ref("");
+const erros = ref<string[]>([]);
+const buttonLoading = ref(false);
+const googleLoading = ref(false);
 
-    async function handleGoogleLogin() {
-      try {
-        googleLoading.value = true;
-        await store.loginComGoogle();
-      } catch (err: any) {
-        erros.value.push(err.message || 'Erro ao conectar com Google');
-      } finally {
-        googleLoading.value = false;
-      }
-    }
+async function handleGoogleLogin() {
+  try {
+    googleLoading.value = true;
+    await store.loginComGoogle();
+  } catch (err: any) {
+    erros.value.push(err.message || 'Erro ao conectar com Google');
+  } finally {
+    googleLoading.value = false;
+  }
+}
 
-    async function handleSubmit() {
-      const dateLogin: Login = {
-        email: username.value,
-        password: password.value,
-      };
-
-      try {
-        buttonLoading.value = true;
-        await store.logarUsuario(dateLogin);
-        buttonLoading.value = false;
-      } catch (err: any) {
-        erros.value.push(err.response.data.message);
-        buttonLoading.value = false;
-      }
-    }
-
-    return {
-      username,
-      password,
-      handleSubmit,
-      handleGoogleLogin,
-      erros,
-      buttonLoading,
-      googleLoading,
-    };
-  },
-};
+async function handleSubmit() {
+  erros.value = [];
+  try {
+    buttonLoading.value = true;
+    await store.logarUsuario({ email: username.value, password: password.value });
+  } catch (err: any) {
+    erros.value.push(err.response?.data?.message ?? 'Erro ao fazer login.');
+  } finally {
+    buttonLoading.value = false;
+  }
+}
 </script>
 <style scoped>
 .btn-google {

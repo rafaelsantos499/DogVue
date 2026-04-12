@@ -1,7 +1,7 @@
 import type { LoginPayload, RegisterPayload } from '@/models/Login';
 import type { AuthResponse } from '@/models/Auth';
 import type { Usuario } from '@/models/usuario';
-import { apiService } from './apiService';
+import { apiService, setAuthHeader } from './apiService';
 import { tokenService } from './tokenService';
 
 // Shape bruta retornada por /auth/login e /auth/register
@@ -13,13 +13,16 @@ interface LoginApiResponse {
 }
 
 function normalizeAuthResponse(raw: LoginApiResponse): AuthResponse {
-  return {
+  const normalized = {
     access_token: raw.access_token ?? raw.token ?? '',
     refresh_token: raw.refresh_token ?? '',
     token_type: 'Bearer',
     expires_in: 3600,
     user: raw.user,
   };
+  console.debug('[authService] raw response:', raw);
+  console.debug('[authService] normalized access_token:', normalized.access_token);
+  return normalized;
 }
 
 export const authService = {
@@ -51,6 +54,7 @@ export const authService = {
   async logout(): Promise<void> {
     await apiService.post('/auth/logout');
     tokenService.clearTokens();
+    setAuthHeader(null);
   },
 
   async loginWithFirebase(idToken: string): Promise<AuthResponse> {
@@ -65,6 +69,7 @@ export const authService = {
 
   saveToken(accessToken: string, refreshToken?: string): void {
     tokenService.saveTokens(accessToken, refreshToken);
+    setAuthHeader(tokenService.getToken());
   },
 
   removeToken(): void {
