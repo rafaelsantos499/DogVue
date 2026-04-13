@@ -1,30 +1,49 @@
 <template>
   <div class="comments" ref="commentsRef" style="word-break: break-word;">
-    <p class="comments-count">{{ comments.length }} comentário{{ comments.length !== 1 ? 's' : '' }}</p>
+    <p class="comments-count">{{ allComments.length }} comentário{{ allComments.length !== 1 ? 's' : '' }}</p>
+    <button
+      v-if="localCursor"
+      class="comments-load-more"
+      :disabled="loadingMore"
+      @click="loadMore"
+    >
+      {{ loadingMore ? 'Carregando...' : 'Ver comentários anteriores' }}
+    </button>
     <ul class="list-none mb-4">
-      <li v-for="comment in comments" :key="comment.uuid" class="mb-2 text-sm leading-tight">
+      <li v-for="comment in allComments" :key="comment.uuid" class="mb-2 text-sm leading-tight">
         <strong>{{ comment.user.name }}: </strong>
         <span>{{ comment.body }}</span>
       </li>
     </ul>
-    <form v-if="loggedIn" class="grid mt-4" style="grid-template-columns: 1fr auto; align-items: stretch;" @submit.prevent="handleSubmit">
-      <textarea
-        v-model="newComment"
-        placeholder="Comente..."
-        class="comments-textarea"
-      ></textarea>
-      <button type="submit" class="comments-button" :disabled="!newComment.trim()">
-        <svg width="43" height="31" viewBox="0 0 43 31" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.42021 12.2343C1.96462 11.8984 0.667944 13.2188 1.03021 14.6681L1.78522 17.6885C1.94601 18.3318 1.77754 19.013 1.33542 19.5071L0.861153 20.0372C-0.0521287 21.058 0.307727 22.674 1.56784 23.2108L17.1747 29.859C17.961 30.194 18.8734 29.9922 19.4452 29.3568L26.6015 21.4041C27.3694 20.5508 27.255 19.2387 26.3185 18.5749C25.7057 18.1405 24.9308 17.608 24.0003 17C22.168 15.8029 24.1684 12.9261 25.5476 11.2939C26.1527 10.5779 26.2747 9.54549 25.7778 8.75061L21.0936 1.25754C20.3875 0.128057 18.7953 -0.00853437 17.9072 0.984179L7.87358 12.199C7.38736 12.7424 6.64389 12.9782 5.93335 12.8142L3.42021 12.2343ZM21.286 16.0414C21.1883 15.1091 21.4388 14.2294 21.7213 13.5461C22.2879 12.1752 23.3008 10.8541 24.02 10.003C24.0612 9.95419 24.0814 9.89875 24.0856 9.85571C24.0876 9.83589 24.0857 9.82328 24.0845 9.81774C24.0835 9.81323 24.0826 9.8119 24.082 9.81085L19.3977 2.31772L9.36411 13.5325C8.39167 14.6194 6.90474 15.0909 5.48365 14.763L2.97051 14.1831L3.72552 17.2035C4.04711 18.4901 3.71017 19.8524 2.82593 20.8407L2.35166 21.3708L17.9585 28.019L25.056 20.1317C24.4799 19.7252 23.7615 19.2331 22.9064 18.6744C21.9265 18.0341 21.395 17.0815 21.286 16.0414Z" fill="#333333"/>
-          <path d="M15.0003 16C15.0003 17.1046 14.1049 18 13.0003 18C11.8957 18 11.0003 17.1046 11.0003 16C11.0003 14.8955 11.8957 14 13.0003 14C14.1049 14 15.0003 14.8955 15.0003 16Z" fill="#333333"/>
-          <g>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M33.3727 6.07171C33.8092 6.41004 33.8888 7.03818 33.5505 7.47471L29.8749 12.2171C29.5366 12.6536 28.9084 12.7332 28.4719 12.3949C28.0354 12.0565 27.9558 11.4284 28.2941 10.9919L31.9697 6.24951C32.3081 5.81299 32.9362 5.73338 33.3727 6.07171Z" fill="#333333"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M38.9358 19.9472C38.861 20.4944 38.3568 20.8774 37.8096 20.8027L31.8648 19.9907C31.3176 19.916 30.9346 19.4118 31.0094 18.8646C31.0841 18.3174 31.5883 17.9344 32.1355 18.0091L38.0803 18.8211C38.6275 18.8958 39.0105 19.4 38.9358 19.9472Z" fill="#333333"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M37.4801 12.6217C37.6889 13.1329 37.4438 13.7167 36.9325 13.9256L31.3782 16.1948C30.8669 16.4037 30.2831 16.1585 30.0743 15.6473C29.8654 15.136 30.1105 14.5522 30.6218 14.3433L36.1761 12.0741C36.6874 11.8653 37.2712 12.1104 37.4801 12.6217Z" fill="#333333"/>
-          </g>
-        </svg>
-      </button>
+    <form v-if="loggedIn" class="comments-form" @submit.prevent="handleSubmit">
+      <div v-if="errorMsg" class="comments-error">
+        <span>{{ errorMsg }}</span>
+        <button type="button" class="comments-error-close" @click="errorMsg = null">✕</button>
+      </div>
+      <div class="comments-input-row">
+        <textarea
+          v-model="newComment"
+          placeholder="Comente..."
+          class="comments-textarea"
+          :disabled="submitting"
+          @keydown.enter.exact.prevent="handleSubmit"
+        ></textarea>
+        <button type="submit" class="comments-button" :disabled="!newComment.trim() || submitting">
+          <svg width="43" height="31" viewBox="0 0 43 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.42021 12.2343C1.96462 11.8984 0.667944 13.2188 1.03021 14.6681L1.78522 17.6885C1.94601 18.3318 1.77754 19.013 1.33542 19.5071L0.861153 20.0372C-0.0521287 21.058 0.307727 22.674 1.56784 23.2108L17.1747 29.859C17.961 30.194 18.8734 29.9922 19.4452 29.3568L26.6015 21.4041C27.3694 20.5508 27.255 19.2387 26.3185 18.5749C25.7057 18.1405 24.9308 17.608 24.0003 17C22.168 15.8029 24.1684 12.9261 25.5476 11.2939C26.1527 10.5779 26.2747 9.54549 25.7778 8.75061L21.0936 1.25754C20.3875 0.128057 18.7953 -0.00853437 17.9072 0.984179L7.87358 12.199C7.38736 12.7424 6.64389 12.9782 5.93335 12.8142L3.42021 12.2343ZM21.286 16.0414C21.1883 15.1091 21.4388 14.2294 21.7213 13.5461C22.2879 12.1752 23.3008 10.8541 24.02 10.003C24.0612 9.95419 24.0814 9.89875 24.0856 9.85571C24.0876 9.83589 24.0857 9.82328 24.0845 9.81774C24.0835 9.81323 24.0826 9.8119 24.082 9.81085L19.3977 2.31772L9.36411 13.5325C8.39167 14.6194 6.90474 15.0909 5.48365 14.763L2.97051 14.1831L3.72552 17.2035C4.04711 18.4901 3.71017 19.8524 2.82593 20.8407L2.35166 21.3708L17.9585 28.019L25.056 20.1317C24.4799 19.7252 23.7615 19.2331 22.9064 18.6744C21.9265 18.0341 21.395 17.0815 21.286 16.0414Z" fill="#333333"/>
+            <path d="M15.0003 16C15.0003 17.1046 14.1049 18 13.0003 18C11.8957 18 11.0003 17.1046 11.0003 16C11.0003 14.8955 11.8957 14 13.0003 14C14.1049 14 15.0003 14.8955 15.0003 16Z" fill="#333333"/>
+            <g>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M33.3727 6.07171C33.8092 6.41004 33.8888 7.03818 33.5505 7.47471L29.8749 12.2171C29.5366 12.6536 28.9084 12.7332 28.4719 12.3949C28.0354 12.0565 27.9558 11.4284 28.2941 10.9919L31.9697 6.24951C32.3081 5.81299 32.9362 5.73338 33.3727 6.07171Z" fill="#333333"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M38.9358 19.9472C38.861 20.4944 38.3568 20.8774 37.8096 20.8027L31.8648 19.9907C31.3176 19.916 30.9346 19.4118 31.0094 18.8646C31.0841 18.3174 31.5883 17.9344 32.1355 18.0091L38.0803 18.8211C38.6275 18.8958 39.0105 19.4 38.9358 19.9472Z" fill="#333333"/>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M37.4801 12.6217C37.6889 13.1329 37.4438 13.7167 36.9325 13.9256L31.3782 16.1948C30.8669 16.4037 30.2831 16.1585 30.0743 15.6473C29.8654 15.136 30.1105 14.5522 30.6218 14.3433L36.1761 12.0741C36.6874 11.8653 37.2712 12.1104 37.4801 12.6217Z" fill="#333333"/>
+            </g>
+          </svg>
+        </button>
+      </div>
     </form>
+    <div v-else class="comments-login">
+      <router-link :to="{ name: 'login' }">Faça login</router-link> para deixar um comentário.
+    </div>
   </div>
 </template>
 
@@ -33,10 +52,17 @@ import { ref, computed, nextTick } from 'vue';
 import { commentService } from '@/service/commentService';
 import { useUserStore } from '@/store';
 import type { Comment } from '@/models/Comment';
+import axios from 'axios';
+
+interface BlockedCommentError {
+  message: string;
+  ai: { blocked: boolean; score: number; reason: string };
+}
 
 const props = defineProps<{
   postUuid: string;
   comments: Comment[];
+  nextCursor?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -47,17 +73,54 @@ const store = useUserStore();
 const loggedIn = computed(() => store.login);
 const newComment = ref('');
 const commentsRef = ref<HTMLDivElement | null>(null);
+const submitting = ref(false);
+const errorMsg = ref<string | null>(null);
+const localCursor = ref<string | null>(props.nextCursor ?? null);
+const loadingMore = ref(false);
+const olderComments = ref<Comment[]>([]);
+
+const allComments = computed(() => [...olderComments.value, ...props.comments]);
+
+async function loadMore() {
+  if (!localCursor.value || loadingMore.value) return;
+  loadingMore.value = true;
+  try {
+    const response = await commentService.getComments(props.postUuid, localCursor.value);
+    olderComments.value = [...response.data, ...olderComments.value];
+    localCursor.value = response.next_cursor;
+  } catch (error) {
+    console.error('Erro ao carregar mais comentários:', error);
+  } finally {
+    loadingMore.value = false;
+  }
+}
 
 async function handleSubmit() {
-  if (!newComment.value.trim()) return;
+  if (!newComment.value.trim() || submitting.value) return;
+  submitting.value = true;
+  errorMsg.value = null;
   try {
     const comment = await commentService.addComment(props.postUuid, newComment.value);
     emit('newComment', comment);
     newComment.value = '';
     await nextTick();
-    if (commentsRef.value) commentsRef.value.scrollTop = commentsRef.value.scrollHeight;
+    if (commentsRef.value) {
+      commentsRef.value.scrollTop = commentsRef.value.scrollHeight;
+    }
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data) {
+      const data = error.response.data as BlockedCommentError;
+      if (data.ai?.blocked) {
+        errorMsg.value = `Comentário bloqueado: ${data.ai.reason}`;
+      } else {
+        errorMsg.value = data.message ?? 'Erro ao publicar comentário.';
+      }
+    } else {
+      errorMsg.value = 'Erro ao publicar comentário.';
+    }
     console.error('Erro ao comentar:', error);
+  } finally {
+    submitting.value = false;
   }
 }
 </script>
@@ -65,7 +128,8 @@ async function handleSubmit() {
 <style scoped>
 .comments {
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0;
+  flex: 1;
 }
 
 .comments-count {
@@ -73,6 +137,50 @@ async function handleSubmit() {
   color: #999;
   margin-bottom: 0.75rem;
   font-weight: 500;
+}
+
+.comments-load-more {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  margin-bottom: 0.75rem;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.comments-load-more:hover {
+  color: #555;
+  box-shadow: none;
+}
+
+.comments-load-more:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.comments-login {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 0.2rem;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
+.comments-login a {
+  color: #fb1;
+  font-weight: bold;
+}
+
+.comments-login a:hover {
+  text-decoration: underline;
 }
 
 .comments-textarea {
@@ -94,6 +202,51 @@ async function handleSubmit() {
   border-color: #fb1;
   background: white;
   box-shadow: 0 0 0 3px #fea;
+}
+
+.comments-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.comments-form {
+  margin-top: 1rem;
+}
+
+.comments-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: stretch;
+}
+
+.comments-error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #fff3f3;
+  border: 1px solid #f5c2c2;
+  border-radius: 0.2rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #c0392b;
+  line-height: 1.4;
+}
+
+.comments-error-close {
+  background: none;
+  border: none;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.comments-error-close:hover {
+  box-shadow: none;
 }
 
 .comments-button {

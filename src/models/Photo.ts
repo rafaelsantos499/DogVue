@@ -9,4 +9,5 @@ import type { Comment } from './Comment';
 export interface PhotoData {
   post: Post;
   comments: Comment[];
+  nextCursor: string | null;
 }

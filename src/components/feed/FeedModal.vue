@@ -40,7 +40,7 @@ watch(postUuid, async (uuid) => {
         postService.getPost(uuid),
         commentService.getComments(uuid),
       ]);
-      photoData.value = { post, comments: comments.data };
+      photoData.value = { post, comments: comments.data, nextCursor: comments.next_cursor };
     } catch (err) {
       console.error('Erro ao carregar post:', err);
       error.value = true;

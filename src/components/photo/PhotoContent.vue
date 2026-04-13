@@ -17,6 +17,7 @@
       <PhotoComments
         :post-uuid="data.post.uuid"
         :comments="data.comments"
+        :next-cursor="data.nextCursor"
         @new-comment="handleNewComment"
       />
     </div>
@@ -75,7 +76,7 @@ function handleNewComment(comment: Comment) {
   flex-direction: column;
   justify-content: space-between;
   padding: 1.5rem;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .photo-author a {
