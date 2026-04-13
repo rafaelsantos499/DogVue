@@ -3,7 +3,7 @@
     <h1 class="title">{{ titlePage }}</h1>
 
     <nav class="nav">
-      <router-link :to="{ name: 'Conta' }">
+      <router-link :to="{ name: 'UserFeed' }">
         <img src="../../assets/feed.svg" alt="Minhas Fotos" />
         <p>Minha Fotos</p>
       </router-link>
@@ -35,7 +35,7 @@ const titlePage = ref("");
 const deslogarUsuario = () => store.deslogarUsuario();
 
 function mudarTituloPelaRota(routeName: string | symbol | null | undefined) {
-  if (routeName === "Conta") {
+  if (routeName === "UserFeed" || routeName === "Conta") {
     titlePage.value = "Minhas Fotos";
   } else if (routeName === "UserStats") {
     titlePage.value = "Estatísticas";

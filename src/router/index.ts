@@ -40,6 +40,12 @@ const router = createRouter({
       },
       children: [
         {
+          path: "",
+          name: "UserFeed",
+          component: () => import("@/views/usuario/UserFeed.vue"),
+          meta: { login: true },
+        },
+        {
           path: "criarpost",
           name: "UserPhotoPost",
           component: () => import("@/views/usuario/UserPhotoPost.vue"),
