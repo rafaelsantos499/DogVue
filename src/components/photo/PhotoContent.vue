@@ -12,6 +12,7 @@
           <li v-if="data.post.weight">{{ data.post.weight }} kg</li>
           <li v-if="data.post.age">{{ data.post.age }} anos</li>
         </ul>
+        <p v-if="data.post.description" class="photo-description">{{ data.post.description }}</p>
       </div>
       <PhotoComments
         :post-uuid="data.post.uuid"
@@ -56,11 +57,16 @@ function handleNewComment(comment: Comment) {
 .photo-img {
   display: flex;
   align-items: center;
+  justify-content: center;
   background: #111;
+  overflow: hidden;
+  min-height: 24rem;
 }
 
 .photo-img img {
   width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
 }
 
@@ -102,6 +108,13 @@ function handleNewComment(comment: Comment) {
   font-size: 2rem;
   margin: 0.5rem 0 1rem;
   line-height: 1.2;
+}
+
+.photo-description {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 0.5rem;
 }
 
 .photo-title a {

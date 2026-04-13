@@ -1,5 +1,6 @@
 <template>
-  <div class="comments overflow-auto p-4" style="word-break: break-word;">
+  <div class="comments" ref="commentsRef" style="word-break: break-word;">
+    <p class="comments-count">{{ comments.length }} comentário{{ comments.length !== 1 ? 's' : '' }}</p>
     <ul class="list-none mb-4">
       <li v-for="comment in comments" :key="comment.uuid" class="mb-2 text-sm leading-tight">
         <strong>{{ comment.user.name }}: </strong>
@@ -28,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { commentService } from '@/service/commentService';
 import { useUserStore } from '@/store';
 import type { Comment } from '@/models/Comment';
@@ -39,12 +40,13 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'newComment', comment: Comment): void;
+  newComment: [comment: Comment];
 }>();
 
 const store = useUserStore();
 const loggedIn = computed(() => store.login);
 const newComment = ref('');
+const commentsRef = ref<HTMLDivElement | null>(null);
 
 async function handleSubmit() {
   if (!newComment.value.trim()) return;
@@ -52,6 +54,8 @@ async function handleSubmit() {
     const comment = await commentService.addComment(props.postUuid, newComment.value);
     emit('newComment', comment);
     newComment.value = '';
+    await nextTick();
+    if (commentsRef.value) commentsRef.value.scrollTop = commentsRef.value.scrollHeight;
   } catch (error) {
     console.error('Erro ao comentar:', error);
   }
@@ -59,6 +63,17 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
+.comments {
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.comments-count {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
 
 .comments-textarea {
   display: block;
